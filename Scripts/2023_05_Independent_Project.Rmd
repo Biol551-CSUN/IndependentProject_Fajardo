@@ -262,20 +262,13 @@ sci_line_plot <- function(data){ggplot(data, # data used is the sci_temp_data we
 
 #### Lets Try it using the same data and labels
 
-.pull-left[
 ```{r function1, eval=FALSE, warning=FALSE, message=FALSE}
 sci_line_plot(sci_temp_data)+
   labs(title = "Santa Cruz Island", #title
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
-]
 
-.pull-right[
-```{r function1-out, ref.label="function1", echo=FALSE, warning=FALSE, message=FALSE}
-
-```
-]
 ---
 
 # Another Function
@@ -299,19 +292,13 @@ sci_box_plot <- function(data){ggplot(data,
 
 #### Lets Try it using the same data and labels
 
-.pull-left[
 ```{r function2, eval=FALSE, warning=FALSE, message=FALSE}
 sci_box_plot(sci_temp_data)+
   labs(title = "Santa Cruz Island", #title
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
-]
 
-.pull-right[
-```{r function2-out, ref.label="function2", echo=FALSE, warning=FALSE, message=FALSE}
-```
-]
 
 ---
 
@@ -323,22 +310,6 @@ Websites that I used to help me figure out this code
 [Owl Limpet arcGIS](https://storymaps.arcgis.com/stories/5d06971d96414e35b49d9327cc3bb956)
 
 [ERDDAP Vignette](https://cran.r-project.org/web/packages/heatwaveR/vignettes/OISST_preparation.html)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ---

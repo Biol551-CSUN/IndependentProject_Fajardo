@@ -407,8 +407,8 @@ sci_temp_data %&gt;%
 ---
 
 # Functions
+Since the code is the same for the line graph and the box plot, I decided to create functions. This will come in handy when I have more than 3 sites.
 
-.pull-left[
 
 ```r
 sci_line_plot &lt;- function(data){ggplot(data, # data used is the sci_temp_data we created
@@ -425,17 +425,11 @@ sci_line_plot &lt;- function(data){ggplot(data, # data used is the sci_temp_data
   
 }
 ```
-]
-
-.pull-right[
-
-]
 
 ---
 
 #### Lets Try it using the same data and labels
 
-.pull-left[
 
 ```r
 sci_line_plot(sci_temp_data)+
@@ -443,16 +437,11 @@ sci_line_plot(sci_temp_data)+
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
-]
 
-.pull-right[
-![](../Output/function1-out-1.png)&lt;!-- --&gt;
-]
 ---
 
 # Another Function
 
-.pull-left[
 
 ```r
 sci_box_plot &lt;- function(data){ggplot(data, 
@@ -468,16 +457,11 @@ sci_box_plot &lt;- function(data){ggplot(data,
                                 "orange")) # set colors I want to use
   }
 ```
-]
 
-.pull-right[
-
-]
 ---
 
 #### Lets Try it using the same data and labels
 
-.pull-left[
 
 ```r
 sci_box_plot(sci_temp_data)+
@@ -485,32 +469,18 @@ sci_box_plot(sci_temp_data)+
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
-]
 
-.pull-right[
-![](../Output/function2-out-1.png)&lt;!-- --&gt;
-]
 
 ---
 
 # References
+Websites that I used to help me figure out this code
 
+[Create awesome HTML slides with xaringan](https://www.favstats.eu/post/xaringan_tut/)
 
+[Owl Limpet arcGIS](https://storymaps.arcgis.com/stories/5d06971d96414e35b49d9327cc3bb956)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[ERDDAP Vignette](https://cran.r-project.org/web/packages/heatwaveR/vignettes/OISST_preparation.html)
 
 
 ---
