@@ -186,7 +186,7 @@ sci_temp_data %>%
 # Plots
 
 .pull-left[
-```{r, sci-lineplot, eval=FALSE, warning=FALSE, message=FALSE}
+```{r, sci-plot1, eval=FALSE, warning=FALSE, message=FALSE}
 ggplot(sci_temp_data, # data used is the sci_temp_data we created
        aes(x = time, #x axis is time
            y = sst))+ #y axis is sea surface temperature
@@ -205,7 +205,7 @@ ggplot(sci_temp_data, # data used is the sci_temp_data we created
 ]
 
 .pull-right[
-```{r sci-lineplot-out, ref.label="sci-lineplot", echo=FALSE, warning=FALSE, message=FALSE}
+```{r sci-plot1-out, ref.label="sci-lineplot", echo=FALSE, warning=FALSE, message=FALSE}
 ```
 ]
 
@@ -213,7 +213,7 @@ ggplot(sci_temp_data, # data used is the sci_temp_data we created
 # Plots Con't
 
 .pull-left[
-```{r, sci-boxplot, eval=FALSE, warning=FALSE, message=FALSE}
+```{r, sci-plot2, eval=FALSE, warning=FALSE, message=FALSE}
 sci_temp_data %>%
   ggplot(aes(x = as.factor(year), # make year a factor for the x axis
              y = sst, # y axis
@@ -233,7 +233,7 @@ sci_temp_data %>%
 ]
 
 .pull-right[
-```{r sci-boxplot-out, ref.label="sci-boxplot", echo=FALSE, warning=FALSE, message=FALSE}
+```{r sci-plot2-out, ref.label="sci-plot2", echo=FALSE, warning=FALSE, message=FALSE}
 ```
 ]
 ---
@@ -262,12 +262,20 @@ sci_line_plot <- function(data){ggplot(data, # data used is the sci_temp_data we
 
 #### Lets Try it using the same data and labels
 
+.pull-left[
 ```{r function1, eval=FALSE, warning=FALSE, message=FALSE}
 sci_line_plot(sci_temp_data)+
   labs(title = "Santa Cruz Island", #title
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
+]
+
+.pull-right[
+```{r sci-plot1-out, ref.label="sci-lineplot", echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+]
 
 ---
 
@@ -292,12 +300,22 @@ sci_box_plot <- function(data){ggplot(data,
 
 #### Lets Try it using the same data and labels
 
-```{r function2, eval=FALSE, warning=FALSE, message=FALSE}
+.pull-left[
+```{r function2-out, eval=FALSE, warning=FALSE, message=FALSE}
 sci_box_plot(sci_temp_data)+
   labs(title = "Santa Cruz Island", #title
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
+]
+
+.pull-right[
+```{r sci-plot2-out, ref.label="sci-plot2", echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+
+]
+
 
 
 ---
@@ -321,3 +339,8 @@ class: center, middle
 Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
 
 The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr/), and [R Markdown](https://rmarkdown.rstudio.com).
+
+---
+class: center, middle
+
+#Questions

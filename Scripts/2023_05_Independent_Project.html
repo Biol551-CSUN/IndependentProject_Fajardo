@@ -4,7 +4,7 @@
     <title>Temperature Data Extraction Function</title>
     <meta charset="utf-8" />
     <meta name="author" content="Cindy Fajardo" />
-    <meta name="date" content="2023-05-08" />
+    <meta name="date" content="2023-05-09" />
     <script src="libs/header-attrs-2.21/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
@@ -25,7 +25,7 @@ class: center, middle, inverse, title-slide
 ### Cindy Fajardo
 ]
 .date[
-### 2023-05-08
+### 2023-05-09
 ]
 
 ---
@@ -374,7 +374,7 @@ ggplot(sci_temp_data, # data used is the sci_temp_data we created
 ]
 
 .pull-right[
-![](../Output/sci-lineplot-out-1.png)&lt;!-- --&gt;
+
 ]
 
 ---
@@ -402,7 +402,7 @@ sci_temp_data %&gt;%
 ]
 
 .pull-right[
-![](../Output/sci-boxplot-out-1.png)&lt;!-- --&gt;
+![](../Output/sci-plot2-out-1.png)&lt;!-- --&gt;
 ]
 ---
 
@@ -430,6 +430,7 @@ sci_line_plot &lt;- function(data){ggplot(data, # data used is the sci_temp_data
 
 #### Lets Try it using the same data and labels
 
+.pull-left[
 
 ```r
 sci_line_plot(sci_temp_data)+
@@ -437,6 +438,11 @@ sci_line_plot(sci_temp_data)+
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
+]
+
+.pull-right[
+
+]
 
 ---
 
@@ -462,6 +468,7 @@ sci_box_plot &lt;- function(data){ggplot(data,
 
 #### Lets Try it using the same data and labels
 
+.pull-left[
 
 ```r
 sci_box_plot(sci_temp_data)+
@@ -469,6 +476,13 @@ sci_box_plot(sci_temp_data)+
        x = "Year", # label for x axis
        y = "Sea Surface Temperature, (C)") # label for y axis
 ```
+]
+
+.pull-right[
+![](../Output/sci-plot2-out-1.png)&lt;!-- --&gt;
+
+]
+
 
 
 ---
@@ -492,6 +506,11 @@ class: center, middle
 Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
 
 The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr/), and [R Markdown](https://rmarkdown.rstudio.com).
+
+---
+class: center, middle
+
+#Questions
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
