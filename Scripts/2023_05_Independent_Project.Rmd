@@ -205,7 +205,7 @@ ggplot(sci_temp_data, # data used is the sci_temp_data we created
 ]
 
 .pull-right[
-```{r sci-plot1-out, ref.label="sci-lineplot", echo=FALSE, warning=FALSE, message=FALSE}
+```{r sci-plot1-out, ref.label="sci-plot1", echo=FALSE, warning=FALSE, message=FALSE}
 ```
 ]
 
@@ -272,7 +272,7 @@ sci_line_plot(sci_temp_data)+
 ]
 
 .pull-right[
-```{r sci-plot1-out, ref.label="sci-lineplot", echo=FALSE, warning=FALSE, message=FALSE}
+```{r sci-plot1-out, ref.label="sci-plot1", echo=FALSE, warning=FALSE, message=FALSE}
 
 ```
 ]
