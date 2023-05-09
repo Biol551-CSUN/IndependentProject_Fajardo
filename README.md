@@ -12,8 +12,10 @@ This repository will teach the user how to download **Interpolated Ocean Sea Sur
 
 The code in this repository is code that I am actively using in my research. 
 
-Please head over to the [Scripts](Scripts link)file and select, [2023_05_Independent_Project.html](RMD file) to view the xangirian presentation by using [raw.githack](raw link).
+Please head over to the [Scripts][scripts link]file and select, [2023_05_Independent_Project.html][rmd file] to view the xangirian presentation by using [raw.githack][raw link].
 
-[Scripts link]:https://github.com/Biol551-CSUN/IndependentProject_Fajardo/tree/main/Scripts
-[RMD file]:https://github.com/Biol551-CSUN/IndependentProject_Fajardo/blob/main/Scripts/2023_05_Independent_Project.Rmd
+[scripts link]:https://github.com/Biol551-CSUN/IndependentProject_Fajardo/tree/main/Scripts
+
+[rmd file]:https://github.com/Biol551-CSUN/IndependentProject_Fajardo/blob/main/Scripts/2023_05_Independent_Project.Rmd
+
 [raw link]: https://raw.githack.com/
