@@ -1,0 +1,352 @@
+---
+title: "Temperature Data Extraction Function"
+subtitle: "Extracted From NOAA"
+author: "Cindy Fajardo"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '15:10'
+---
+class: center, middle
+
+# Let's Start With 
+# Backround Information
+
+---
+# My Research
+I am attempting to understand how both aerial and sea surface temperature are affecting the metabolism of respiration on the keystone species the owl limpet, *Lottia gigantea* and how that could affect different functions of this species like herbivory (grazing), growth, and territorial behavior. Learning about these effects could provide insight to possible changes to biodiversity the rocky intertidal could face in a variable climate.
+
+--
+
+I plan to execute my planned research by studying the effects of a variable climate by looking at changes in grazing, and growth rates of the owl limpets per season in two different locations of their geographical range, one "warm" site and one "cold" site. The reason for this is to figure out if there is any differences in the two populations in accordance to differences to their abiotic conditions like temperature experienced in the ocean and in the air.
+
+--
+
+You can find more information about this limpet on the NPS' [arcGIS](https://storymaps.arcgis.com/stories/5d06971d96414e35b49d9327cc3bb956) website.
+
+
+
+---
+class: middle
+
+.pull-left[![](https://www.nps.gov/cabr/blogs/images/lottia.JPG)]
+.pull-right[![](https://70milesofcoast.com/wp-content/uploads/2018/01/848-Cabrillo.jpg)]
+
+---
+
+# Where to start
+
+What is the temperature difference between seasons per site?
+
+--
+
+Is there a temperature difference between sites?
+
+--
+
+How do I do that?
+
+--
+
+[NOAA!](https://www.noaa.gov/)
+
+![](https://www.noaa.gov/sites/default/files/legacy/image/2019/Jun/noaa_MISSION_facebook_coverphoto.jpg)
+---
+# NOAA
+
+--
+
+NOAA is the National Oceanic and Atmospheric Administration. NOAA is a scientific and regulatory agency within the United States Department of Commerce. This agency collects data in order to produce products like weather forecasting, climate monitoring, fisheries management, coastal restoration, etc. 
+
+--
+
+The data that is collected is available online for scientist to use.
+
+--
+
+But how do you get it from the internet? 
+
+--
+
+Extract it using R!
+
+---
+
+# Extracting Data from NOAA
+
+NOAA has a server data called [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/index.html). This data server provides the user with a simple, consistent way to download subsets of scientific datasets in common file formats. It also make graphs and maps.
+
+--
+
+There are a total of 3,099 datasets in this server data. We will be using dataset id [ncdcOisst21Agg_LonPM180](https://coastwatch.pfeg.noaa.gov/erddap/search/index.html?page=1&itemsPerPage=1000&searchFor=ncdcOisst21Agg_LonPM180).
+
+--
+
+You need specific longitude and latitude coordinates to narrow down your search area. We will be using:
+1. latitude 34.1,34.1
+1. longitude -119.875,-119.875
+1. As of 05/08/2023, NOAA made changes to the ERDDAP website, we will be using [this link](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg_LonPM180.graph) to find what we are looking for.
+
+Two are needed to provide a graph with specific parameters.
+
+---
+
+# Starting Script
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.path = "../Output/")
+```
+### Install Packages
+install.packages("rerddap")
+
+
+### Load Libraries
+```{r, Libraries}
+library("rerddap")
+library(tidyverse)
+library("tidync")
+library("doParallel")
+library(lubridate)
+library(patchwork)
+library(viridis)
+library(here)
+library(kableExtra)
+```
+
+
+---
+# Set up rerddap
+```{r, rerddap}
+####This tells R to use NOAA designated website and what data set to use#####
+rerddap::info(datasetid = "ncdcOisst21Agg_LonPM180", url = "https://coastwatch.pfeg.noaa.gov/erddap/")
+```
+---
+## Next Steps and Data Dictionary
+We set up our code to download selected data and create a data frame of columns that we can use. Because this data spans from 1981 to present, we will also be setting parameters to select a certain time frame. Downloading the entire data set will crash R. TRUST me, I have tried.
+
+### Data Dictionary
+```{r, echo=FALSE}
+read_csv(here("Data", "data_dictionary.csv")) %>% 
+  kbl() %>% 
+  kable_styling(font_size = 12)
+```
+
+
+---
+## Data Wrangling
+```{r}
+sci_temp_data<-griddap(datasetx = "ncdcOisst21Agg_LonPM180", # griddap is used to pull gridded data from ERDDAP. The data set we are using is named ncdcOisst21Agg_LonPM180
+                   url = "https://coastwatch.pfeg.noaa.gov/erddap/", # url we used earlier, the ERDDAP website
+                   time = c("2020-01-01", "2022-12-31"), # The date range that we are looking for. In this case the last three years. More years will take longer to load.
+                   zlev = c(0,0), # this is the elevation of the sea surface. It is always 0,0
+                   latitude =  c(34.1,34.1), # latitude for SCI
+                   longitude = c(-119.875,-119.875), # longitude for SCI 
+                   fields = "sst")$data %>% # the specific field we are looking for is "sst"
+  mutate(time = as.Date(stringr::str_remove(time, "T00:00:00Z"))) %>% # remove the "T00:00:00Z" using a stringer
+  select(longitude, latitude, time, sst) %>% # select longitude, latitude, time and sst
+  na.omit()%>% # remove any NA's
+  mutate(month = month(time), # extract the month
+         year = year(time), #extract the year
+         site = "Santa Cruz Island", # create a new column with the site name
+         season  = case_when( # create the seasons
+           month %in% c(12,1,2) ~ "winter",
+           month %in% c(3,4,5) ~ "spring",
+           month %in% c(6,7,8) ~ "summer",
+           month %in% c(9,10,11) ~ "fall"
+         ),
+         season = factor(season), # make season a factor
+         season = fct_relevel(season, c("winter","spring","summer","fall"))) # use factor relevel to make the seasons go in order
+```
+
+
+---
+
+## Summarize Data
+
+Let's summarize the data to provide averages per year by season by grouping the data. We can then make a table using the kable function
+```{r}
+sci_temp_data %>%
+  group_by(year,season)%>% # group by year and season
+  summarise(temp.mean = mean(sst, na.rm = TRUE), # average of sst
+            temp.max = max(sst, na.rm = TRUE)) %>% # max sst
+  kbl()%>% #make a table
+  kable_styling(full_width = F, font_size = 9) #use this to change the font
+```
+
+
+---
+
+# Plots
+
+.pull-left[
+```{r, sci-lineplot, eval=FALSE, warning=FALSE, message=FALSE}
+ggplot(sci_temp_data, # data used is the sci_temp_data we created
+       aes(x = time, #x axis is time
+           y = sst))+ #y axis is sea surface temperature
+  labs(title = "Santa Cruz Island", #title
+       x = "Year", # label for x axis
+       y = "Sea Surface Temperature, (C)", # label for y axis
+       color = "Season")+ # legend label
+  theme_bw()+
+  geom_line()+ # draw a line graph
+  geom_point(aes(color = season))+ # add points colored by seasons
+  scale_color_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+```
+]
+
+.pull-right[
+```{r sci-lineplot-out, ref.label="sci-lineplot", echo=FALSE, warning=FALSE, message=FALSE}
+```
+]
+
+---
+# Plots Con't
+
+.pull-left[
+```{r, sci-boxplot, eval=FALSE, warning=FALSE, message=FALSE}
+sci_temp_data %>%
+  ggplot(aes(x = as.factor(year), # make year a factor for the x axis
+             y = sst, # y axis
+             fill = season))+ # fill by season
+  geom_boxplot()+
+  labs(title = "Santa Cruz Island", # plot title
+       fill = "Season", # legend label
+       x = "Year", # x axis label
+       y = "Sea Surface Temperature (C)")+ # y axis label
+  theme_bw()+
+   scale_fill_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+```
+
+]
+
+.pull-right[
+```{r sci-boxplot-out, ref.label="sci-boxplot", echo=FALSE, warning=FALSE, message=FALSE}
+```
+]
+---
+
+# Functions
+Since the code is the same for the line graph and the box plot, I decided to create functions. This will come in handy when I have more than 3 sites.
+
+```{r, line-plot-fxn, eval=FALSE, warning=FALSE, message=FALSE}
+sci_line_plot <- function(data){ggplot(data, # data used is the sci_temp_data we created
+       aes(x = time, #x axis is time
+           y = sst))+ #y axis is sea surface temperature
+  labs(color = "Season")+ # legend label
+  theme_bw()+
+  geom_line()+ # draw a line graph
+  geom_point(aes(color = season))+ # add points colored by seasons
+  scale_color_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+  
+}
+
+```
+
+---
+
+#### Lets Try it using the same data and labels
+
+.pull-left[
+```{r function1, eval=FALSE, warning=FALSE, message=FALSE}
+sci_line_plot(sci_temp_data)+
+  labs(title = "Santa Cruz Island", #title
+       x = "Year", # label for x axis
+       y = "Sea Surface Temperature, (C)") # label for y axis
+```
+]
+
+.pull-right[
+```{r function1-out, ref.label="function1", echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+]
+---
+
+# Another Function
+
+```{r box-plot-fxn, eval=FALSE, warning=FALSE, message=FALSE}
+sci_box_plot <- function(data){ggplot(data, 
+          aes(x = as.factor(year), # make year a factor for the x axis
+          y = sst, # y axis
+          fill = season))+ # fill by season
+  geom_boxplot()+
+  labs(fill = "Season")+ # legend label
+  theme_bw()+
+   scale_fill_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+  }
+```
+
+---
+
+#### Lets Try it using the same data and labels
+
+.pull-left[
+```{r function2, eval=FALSE, warning=FALSE, message=FALSE}
+sci_box_plot(sci_temp_data)+
+  labs(title = "Santa Cruz Island", #title
+       x = "Year", # label for x axis
+       y = "Sea Surface Temperature, (C)") # label for y axis
+```
+]
+
+.pull-right[
+```{r function2-out, ref.label="function2", echo=FALSE, warning=FALSE, message=FALSE}
+```
+]
+
+---
+
+# References
+Websites that I used to help me figure out this code
+
+[Create awesome HTML slides with xaringan](https://www.favstats.eu/post/xaringan_tut/)
+
+[Owl Limpet arcGIS](https://storymaps.arcgis.com/stories/5d06971d96414e35b49d9327cc3bb956)
+
+[ERDDAP Vignette](https://cran.r-project.org/web/packages/heatwaveR/vignettes/OISST_preparation.html)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+class: center, middle
+
+# Thanks!
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr/), and [R Markdown](https://rmarkdown.rstudio.com).

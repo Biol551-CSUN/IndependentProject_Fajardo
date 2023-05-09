@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Temperature Data Extraction Function</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Cindy Fajardo" />
+    <meta name="date" content="2023-05-08" />
+    <script src="libs/header-attrs-2.21/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Temperature Data Extraction Function
+]
+.subtitle[
+## Extracted From NOAA
+]
+.author[
+### Cindy Fajardo
+]
+.date[
+### 2023-05-08
+]
+
+---
+
+class: center, middle
+
+# Let's Start With 
+# Backround Information
+
+---
+# My Research
+I am attempting to understand how both aerial and sea surface temperature are affecting the metabolism of respiration on the keystone species the owl limpet, *Lottia gigantea* and how that could affect different functions of this species like herbivory (grazing), growth, and territorial behavior. Learning about these effects could provide insight to possible changes to biodiversity the rocky intertidal could face in a variable climate.
+
+--
+
+I plan to execute my planned research by studying the effects of a variable climate by looking at changes in grazing, and growth rates of the owl limpets per season in two different locations of their geographical range, one "warm" site and one "cold" site. The reason for this is to figure out if there is any differences in the two populations in accordance to differences to their abiotic conditions like temperature experienced in the ocean and in the air.
+
+--
+
+You can find more information about this limpet on the NPS' [arcGIS](https://storymaps.arcgis.com/stories/5d06971d96414e35b49d9327cc3bb956) website.
+
+
+
+---
+class: middle
+
+.pull-left[![](https://www.nps.gov/cabr/blogs/images/lottia.JPG)]
+.pull-right[![](https://70milesofcoast.com/wp-content/uploads/2018/01/848-Cabrillo.jpg)]
+
+---
+
+# Where to start
+
+What is the temperature difference between seasons per site?
+
+--
+
+Is there a temperature difference between sites?
+
+--
+
+How do I do that?
+
+--
+
+[NOAA!](https://www.noaa.gov/)
+
+![](https://www.noaa.gov/sites/default/files/legacy/image/2019/Jun/noaa_MISSION_facebook_coverphoto.jpg)
+---
+# NOAA
+
+--
+
+NOAA is the National Oceanic and Atmospheric Administration. NOAA is a scientific and regulatory agency within the United States Department of Commerce. This agency collects data in order to produce products like weather forecasting, climate monitoring, fisheries management, coastal restoration, etc. 
+
+--
+
+The data that is collected is available online for scientist to use.
+
+--
+
+But how do you get it from the internet? 
+
+--
+
+Extract it using R!
+
+---
+
+# Extracting Data from NOAA
+
+NOAA has a server data called [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/index.html). This data server provides the user with a simple, consistent way to download subsets of scientific datasets in common file formats. It also make graphs and maps.
+
+--
+
+There are a total of 3,099 datasets in this server data. We will be using dataset id [ncdcOisst21Agg_LonPM180](https://coastwatch.pfeg.noaa.gov/erddap/search/index.html?page=1&amp;itemsPerPage=1000&amp;searchFor=ncdcOisst21Agg_LonPM180).
+
+--
+
+You need specific longitude and latitude coordinates to narrow down your search area. We will be using:
+1. latitude 34.1,34.1
+1. longitude -119.875,-119.875
+1. As of 05/08/2023, NOAA made changes to the ERDDAP website, we will be using [this link](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg_LonPM180.graph) to find what we are looking for.
+
+Two are needed to provide a graph with specific parameters.
+
+---
+
+# Starting Script
+
+### Install Packages
+install.packages("rerddap")
+
+
+### Load Libraries
+
+```r
+library("rerddap")
+library(tidyverse)
+library("tidync")
+library("doParallel")
+library(lubridate)
+library(patchwork)
+library(viridis)
+library(here)
+library(kableExtra)
+```
+
+
+---
+# Set up rerddap
+
+```r
+####This tells R to use NOAA designated website and what data set to use#####
+rerddap::info(datasetid = "ncdcOisst21Agg_LonPM180", url = "https://coastwatch.pfeg.noaa.gov/erddap/")
+```
+
+```
+## &lt;ERDDAP info&gt; ncdcOisst21Agg_LonPM180 
+##  Base URL: https://coastwatch.pfeg.noaa.gov/erddap 
+##  Dataset Type: griddap 
+##  Dimensions (range):  
+##      time: (1981-09-01T12:00:00Z, 2023-04-23T12:00:00Z) 
+##      zlev: (0.0, 0.0) 
+##      latitude: (-89.875, 89.875) 
+##      longitude: (-179.875, 179.875) 
+##  Variables:  
+##      anom: 
+##          Units: degree_C 
+##      err: 
+##          Units: degree_C 
+##      ice: 
+##          Units: 1 
+##      sst: 
+##          Units: degree_C
+```
+---
+## Next Steps and Data Dictionary
+We set up our code to download selected data and create a data frame of columns that we can use. Because this data spans from 1981 to present, we will also be setting parameters to select a certain time frame. Downloading the entire data set will crash R. TRUST me, I have tried.
+
+### Data Dictionary
+&lt;table class="table" style="font-size: 12px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; column_name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; name &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; description &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; time &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Time &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Date and Time data taken in UTC &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; zlev &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; elevation &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; sea surface elevation &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; latitude &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; latitude &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; latitude &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; longitude &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; longitude &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; longitude &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; sst &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; sea surface temperature &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; daily sea surface temperature &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; anom &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; anomolies &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Daily sea surface temperature anomalies &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; err &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; error &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Estimated error standard deviation of analysed_sst &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; ice &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; ice &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Sea ice concentration &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+## Data Wrangling
+
+```r
+sci_temp_data&lt;-griddap(datasetx = "ncdcOisst21Agg_LonPM180", # griddap is used to pull gridded data from ERDDAP. The data set we are using is named ncdcOisst21Agg_LonPM180
+                   url = "https://coastwatch.pfeg.noaa.gov/erddap/", # url we used earlier, the ERDDAP website
+                   time = c("2020-01-01", "2022-12-31"), # The date range that we are looking for. In this case the last three years. More years will take longer to load.
+                   zlev = c(0,0), # this is the elevation of the sea surface. It is always 0,0
+                   latitude =  c(34.1,34.1), # latitude for SCI
+                   longitude = c(-119.875,-119.875), # longitude for SCI 
+                   fields = "sst")$data %&gt;% # the specific field we are looking for is "sst"
+  mutate(time = as.Date(stringr::str_remove(time, "T00:00:00Z"))) %&gt;% # remove the "T00:00:00Z" using a stringer
+  select(longitude, latitude, time, sst) %&gt;% # select longitude, latitude, time and sst
+  na.omit()%&gt;% # remove any NA's
+  mutate(month = month(time), # extract the month
+         year = year(time), #extract the year
+         site = "Santa Cruz Island", # create a new column with the site name
+         season  = case_when( # create the seasons
+           month %in% c(12,1,2) ~ "winter",
+           month %in% c(3,4,5) ~ "spring",
+           month %in% c(6,7,8) ~ "summer",
+           month %in% c(9,10,11) ~ "fall"
+         ),
+         season = factor(season), # make season a factor
+         season = fct_relevel(season, c("winter","spring","summer","fall"))) # use factor relevel to make the seasons go in order
+```
+
+
+---
+
+## Summarize Data
+
+Let's summarize the data to provide averages per year by season by grouping the data. We can then make a table using the kable function
+
+```r
+sci_temp_data %&gt;%
+  group_by(year,season)%&gt;% # group by year and season
+  summarise(temp.mean = mean(sst, na.rm = TRUE), # average of sst
+            temp.max = max(sst, na.rm = TRUE)) %&gt;% # max sst
+  kbl()%&gt;% #make a table
+  kable_styling(full_width = F, font_size = 9) #use this to change the font
+```
+
+&lt;table class="table" style="font-size: 9px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; year &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; season &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; temp.mean &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; temp.max &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2020 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.80725 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.56 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2020 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.66402 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.56 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2020 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17.48359 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20.76 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2020 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; fall &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.08374 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20.42 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2021 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13.92567 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.43 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2021 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13.63659 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.20 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2021 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17.61511 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19.90 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2021 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; fall &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.75556 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.66 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2022 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; winter &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.45267 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.01 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2022 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; spring &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13.59891 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.90 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2022 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; summer &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17.66424 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19.95 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2022 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; fall &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17.98722 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21.10 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+
+# Plots
+
+.pull-left[
+
+```r
+ggplot(sci_temp_data, # data used is the sci_temp_data we created
+       aes(x = time, #x axis is time
+           y = sst))+ #y axis is sea surface temperature
+  labs(title = "Santa Cruz Island", #title
+       x = "Year", # label for x axis
+       y = "Sea Surface Temperature, (C)", # label for y axis
+       color = "Season")+ # legend label
+  theme_bw()+
+  geom_line()+ # draw a line graph
+  geom_point(aes(color = season))+ # add points colored by seasons
+  scale_color_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+```
+]
+
+.pull-right[
+![](../Output/sci-lineplot-out-1.png)&lt;!-- --&gt;
+]
+
+---
+# Plots Con't
+
+.pull-left[
+
+```r
+sci_temp_data %&gt;%
+  ggplot(aes(x = as.factor(year), # make year a factor for the x axis
+             y = sst, # y axis
+             fill = season))+ # fill by season
+  geom_boxplot()+
+  labs(title = "Santa Cruz Island", # plot title
+       fill = "Season", # legend label
+       x = "Year", # x axis label
+       y = "Sea Surface Temperature (C)")+ # y axis label
+  theme_bw()+
+   scale_fill_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+```
+
+]
+
+.pull-right[
+![](../Output/sci-boxplot-out-1.png)&lt;!-- --&gt;
+]
+---
+
+# Functions
+
+.pull-left[
+
+```r
+sci_line_plot &lt;- function(data){ggplot(data, # data used is the sci_temp_data we created
+       aes(x = time, #x axis is time
+           y = sst))+ #y axis is sea surface temperature
+  labs(color = "Season")+ # legend label
+  theme_bw()+
+  geom_line()+ # draw a line graph
+  geom_point(aes(color = season))+ # add points colored by seasons
+  scale_color_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+  
+}
+```
+]
+
+.pull-right[
+
+]
+
+---
+
+#### Lets Try it using the same data and labels
+
+.pull-left[
+
+```r
+sci_line_plot(sci_temp_data)+
+  labs(title = "Santa Cruz Island", #title
+       x = "Year", # label for x axis
+       y = "Sea Surface Temperature, (C)") # label for y axis
+```
+]
+
+.pull-right[
+![](../Output/function1-out-1.png)&lt;!-- --&gt;
+]
+---
+
+# Another Function
+
+.pull-left[
+
+```r
+sci_box_plot &lt;- function(data){ggplot(data, 
+          aes(x = as.factor(year), # make year a factor for the x axis
+          y = sst, # y axis
+          fill = season))+ # fill by season
+  geom_boxplot()+
+  labs(fill = "Season")+ # legend label
+  theme_bw()+
+   scale_fill_manual(values = c("blue",
+                                "green",
+                                "red",
+                                "orange")) # set colors I want to use
+  }
+```
+]
+
+.pull-right[
+
+]
+---
+
+#### Lets Try it using the same data and labels
+
+.pull-left[
+
+```r
+sci_box_plot(sci_temp_data)+
+  labs(title = "Santa Cruz Island", #title
+       x = "Year", # label for x axis
+       y = "Sea Surface Temperature, (C)") # label for y axis
+```
+]
+
+.pull-right[
+![](../Output/function2-out-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# References
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+class: center, middle
+
+# Thanks!
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr/), and [R Markdown](https://rmarkdown.rstudio.com).
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "15:10"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
