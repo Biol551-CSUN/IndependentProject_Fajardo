@@ -1,0 +1,9 @@
+column_name,name,description
+time,Time,Date and Time data taken in UTC 
+zlev,elevation,sea surface elevation
+latitude,latitude,latitude
+longitude,longitude,longitude
+sst,sea surface temperature,daily sea surface temperature
+anom,anomolies,Daily sea surface temperature anomalies
+err,error,Estimated error standard deviation of analysed_sst
+ice,ice,Sea ice concentration
